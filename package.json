@@ -4,14 +4,37 @@
   "description": "Automake packaged for esy",
   "esy": {
     "buildsInSource": true,
+    "buildEnv": {
+      "PATH": "#{self.bin : $PATH }"
+    },
     "build": [
-      ["chmod", "755", "./configure"],
-      ["ln", "-s", "/usr/bin/true", "#{ self.bin / 'makeinfo' }"],
-      ["bash", "-c", "#{os == 'windows' ? './configure --prefix=$cur__install --host x86_64-w64-mingw32' : './configure --prefix=$cur__install'}"],
-      ["make"],
-      ["make", "install"]
+      [
+        "chmod",
+        "755",
+        "./configure",
+        "./mkinstalldirs"
+      ],
+      [
+        "ln",
+        "-s",
+        "/usr/bin/true",
+        "#{ self.bin / 'makeinfo' }"
+      ],
+      [
+        "bash",
+        "-c",
+        "#{os == 'windows' ? './configure --prefix=$cur__install --host x86_64-w64-mingw32' : './configure --prefix=$cur__install'}"
+      ],
+      [
+        "make"
+      ],
+      [
+        "make",
+        "install"
+      ]
     ]
   },
-  "dependencies": {"esy-autoconf": "*"},
-  "resolutions": {"esy-autoconf": "esy-packages/esy-autoconf#0c3e47a7f29420d4329ad533aa73c22c0617f05a"}
+  "dependencies": {
+    "esy-autoconf": "https://github.com/esy-packages/esy-autoconf/archive/v2.10.001.tar.gz#b8ee4dcd7a95db381cffc0f169a61dc3f90ab257"
+  }
 }
