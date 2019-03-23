@@ -11,6 +11,7 @@
       ["chmod", "755", "./configure", "./mkinstalldirs"],
       ["ln", "-s", "/usr/bin/true", "#{ self.bin / 'makeinfo' }"],
       ["bash", "-c", "#{os == 'windows' ? './configure --prefix=$cur__install --host x86_64-w64-mingw32' : './configure --prefix=$cur__install'}"],
+      ["which", "makeinfo"],
       ["make"],
       ["make", "install"]
     ]
