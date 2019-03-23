@@ -1,105 +1,31 @@
-# Local additions to Autoconf macros.
-# Copyright (C) 1992, 1994, 1995 Free Software Foundation, Inc.
-# François Pinard <pinard@iro.umontreal.ca>, 1992.
+# generated automatically by aclocal 1.10 -*- Autoconf -*-
 
-## ------------------------------- ##
-## Check for function prototypes.  ##
-## ------------------------------- ##
+# Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+# 2005, 2006  Free Software Foundation, Inc.
+# This file is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
 
-AC_DEFUN(fp_C_PROTOTYPES,
-[AC_REQUIRE([fp_PROG_CC_STDC])
-AC_MSG_CHECKING([for function prototypes])
-if test "$ac_cv_prog_cc_stdc" != no; then
-  AC_MSG_RESULT(yes)
-  AC_DEFINE(PROTOTYPES)
-  U= ANSI2KNR=
-else
-  AC_MSG_RESULT(no)
-  U=_ ANSI2KNR=./ansi2knr
-fi
-AC_SUBST(U)dnl
-AC_SUBST(ANSI2KNR)dnl
-])
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
 
-## ----------------------------------------- ##
-## ANSIfy the C compiler whenever possible.  ##
-## ----------------------------------------- ##
+m4_if(m4_PACKAGE_VERSION, [2.60],,
+[m4_fatal([this file was generated for autoconf 2.60.
+You have another version of autoconf.  If you want to use that,
+you should regenerate the build system entirely.], [63])])
 
-# @defmac AC_PROG_CC_STDC
-# @maindex PROG_CC_STDC
-# @ovindex CC
-# If the C compiler in not in ANSI C mode by default, try to add an option
-# to output variable @code{CC} to make it so.  This macro tries various
-# options that select ANSI C on some system or another.  It considers the
-# compiler to be in ANSI C mode if it defines @code{__STDC__} to 1 and
-# handles function prototypes correctly.
-#
-# If you use this macro, you should check after calling it whether the C
-# compiler has been set to accept ANSI C; if not, the shell variable
-# @code{ac_cv_prog_cc_stdc} is set to @samp{no}.  If you wrote your source
-# code in ANSI C, you can make an un-ANSIfied copy of it by using the
-# program @code{ansi2knr}, which comes with Ghostscript.
-# @end defmac
-
-AC_DEFUN(fp_PROG_CC_STDC,
-[AC_MSG_CHECKING(for ${CC-cc} option to accept ANSI C)
-AC_CACHE_VAL(ac_cv_prog_cc_stdc,
-[ac_cv_prog_cc_stdc=no
-ac_save_CFLAGS="$CFLAGS"
-# Don't try gcc -ansi; that turns off useful extensions and
-# breaks some systems' header files.
-# AIX			-qlanglvl=ansi
-# Ultrix and OSF/1	-std1
-# HP-UX			-Aa -D_HPUX_SOURCE
-# SVR4			-Xc
-for ac_arg in "" -qlanglvl=ansi -std1 "-Aa -D_HPUX_SOURCE" -Xc
-do
-  CFLAGS="$ac_save_CFLAGS $ac_arg"
-  AC_TRY_COMPILE(
-[#if !defined(__STDC__) || __STDC__ != 1
-choke me
-#endif
-], [int test (int i, double x);
-struct s1 {int (*f) (int a);};
-struct s2 {int (*f) (double a);};],
-[ac_cv_prog_cc_stdc="$ac_arg"; break])
-done
-CFLAGS="$ac_save_CFLAGS"
-])
-AC_MSG_RESULT($ac_cv_prog_cc_stdc)
-case "x$ac_cv_prog_cc_stdc" in
-  x|xno) ;;
-  *) CC="$CC $ac_cv_prog_cc_stdc" ;;
-esac
-])
-
-## --------------------------------------------------------- ##
-## Use AC_PROG_INSTALL, supplementing it with INSTALL_SCRIPT ##
-## substitution.                                             ##
-## --------------------------------------------------------- ##
-
-AC_DEFUN(fp_PROG_INSTALL,
-[AC_PROG_INSTALL
-test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL} -m 755'
-AC_SUBST(INSTALL_SCRIPT)dnl
-])
-
-
-# Add --enable-maintainer-mode option to configure.
-AC_DEFUN(jm_MAINTAINER_MODE,
-[AC_MSG_CHECKING([whether to enable maintainer-specific portions of Makefiles])
-  dnl maintainer-mode is disabled by default
-  AC_ARG_ENABLE(maintainer-mode,
-[  --enable-maintainer-mode enable make rules and dependencies not useful
-                          (and sometimes confusing) to the casual installer],
-      USE_MAINTAINER_MODE=$enableval,
-      USE_MAINTAINER_MODE=no)
-  AC_MSG_RESULT($USE_MAINTAINER_MODE)
-  if test $USE_MAINTAINER_MODE = yes; then
-    MAINT=
-  else
-    MAINT='#M#'
-  fi
-  AC_SUBST(MAINT)dnl
-]
-)
+m4_include([m4/amversion.m4])
+m4_include([m4/auxdir.m4])
+m4_include([m4/init.m4])
+m4_include([m4/install-sh.m4])
+m4_include([m4/lead-dot.m4])
+m4_include([m4/missing.m4])
+m4_include([m4/mkdirp.m4])
+m4_include([m4/options.m4])
+m4_include([m4/runlog.m4])
+m4_include([m4/sanity.m4])
+m4_include([m4/strip.m4])
+m4_include([m4/substnot.m4])
+m4_include([m4/tar.m4])
