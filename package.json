@@ -12,7 +12,7 @@
         "chmod",
         "755",
         "./configure",
-        "./mkinstalldirs"
+        "./lib/install-sh"
       ],
       [
         "ln",
