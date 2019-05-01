@@ -15,5 +15,5 @@ jobs:
       displayName: 'Install esy'
   - script: esy install
     displayName: 'esy install'
-  - script: 'esy x automake --version'
+  - script: 'esy x which automake'
     displayName: 'Checking binary...'
