@@ -11,6 +11,8 @@
       ["make", "install"]
     ]
   },
-  "dependencies": {},
+  "dependencies": {
+    "autoconf": "esy-packages/esy-autoconf#94f846f3ad69fc65c65a61dd7fd3d70073dc93ea"
+  },
   "resolutions": {}
 }
