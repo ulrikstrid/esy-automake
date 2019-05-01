@@ -1,4 +1,4 @@
-# Copyright (C) 2003, 2004, 2006  Free Software Foundation, Inc.
+# Copyright (C) 2003-2018 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -11,11 +11,11 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package Automake::VarDef;
+
+use 5.006;
 use strict;
 use Carp;
 use Automake::ChannelDefs;
@@ -49,7 +49,7 @@ Automake::VarDef - a class for variable definitions
   $def->append ('value to append', 'comment to append');
 
   # Accessors.
-  my $value    = $def->value;  # with trailing `#' comments and
+  my $value    = $def->value;  # with trailing '#' comments and
                                # continuation ("\\\n") omitted.
   my $value    = $def->raw_value; # the real value, as passed to new().
   my $comment  = $def->comment;
@@ -100,7 +100,7 @@ C<VAR_SORTED> variables should be sorted and then handled as
 C<VAR_PRETTY> variables.
 
 C<VAR_SILENT> variables can also be overridden silently (unlike the
-other kinds of variables whose overridding may sometimes produce
+other kinds of variables whose overriding may sometimes produce
 warnings).
 
 =cut
@@ -130,7 +130,7 @@ C<$comment> is any comment preceding the definition.  (Because
 Automake reorders variable definitions in the output, it also tries to
 carry comments around.)
 
-C<$location> is the place where the definition occured, it should be
+C<$location> is the place where the definition occurred, it should be
 an instance of L<Automake::Location>.
 
 C<$type> should be C<''> for definitions made with C<=>, and C<':'>
@@ -150,11 +150,11 @@ sub new ($$$$$$$$)
 {
   my ($class, $var, $value, $comment, $location, $type, $owner, $pretty) = @_;
 
-  # A user variable must be set by either `=' or `:=', and later
-  # promoted to `+='.
+  # A user variable must be set by either '=' or ':=', and later
+  # promoted to '+='.
   if ($owner != VAR_AUTOMAKE && $type eq '+')
     {
-      error $location, "$var must be set with `=' before using `+='";
+      error $location, "$var must be set with '=' before using '+='";
     }
 
   my $self = Automake::ItemDef::new ($class, $comment, $location, $owner);
@@ -167,7 +167,7 @@ sub new ($$$$$$$$)
 
 =item C<$def-E<gt>append ($value, $comment)>
 
-Append C<$value> and <$comment> to the exisiting value and comment of
+Append C<$value> and <$comment> to the existing value and comment of
 C<$def>.  This is normally called on C<+=> definitions.
 
 =cut
@@ -184,27 +184,20 @@ sub append ($$$)
   #   VAR += bar
   # does not become
   #   VAR = foo # com bar
-  # Furthermore keeping `#' would not be portable if the variable is
+  # Furthermore keeping '#' would not be portable if the variable is
   # output on multiple lines.
   $val =~ s/ ?#.*//;
-
-  if (chomp $val)
-    {
-      # Insert a backslash before a trailing newline.
-      $val .= "\\\n";
-    }
-  elsif ($val)
-    {
-      # Insert a separator.
-      $val .= ' ';
-    }
+  # Insert a separator, if required.
+  $val .= ' ' if $val;
   $self->{'value'} = $val . $value;
   # Turn ASIS appended variables into PRETTY variables.  This is to
-  # cope with `make' implementation that cannot read very long lines.
+  # cope with 'make' implementation that cannot read very long lines.
   $self->{'pretty'} = VAR_PRETTY if $self->{'pretty'} == VAR_ASIS;
 }
 
 =item C<$def-E<gt>value>
+
+=item C<$def-E<gt>raw_value>
 
 =item C<$def-E<gt>type>
 
@@ -219,7 +212,7 @@ sub value ($)
 {
   my ($self) = @_;
   my $val = $self->raw_value;
-  # Strip anything past `#'.  `#' characters cannot be escaped
+  # Strip anything past '#'.  '#' characters cannot be escaped
   # in Makefiles, so we don't have to be smart.
   $val =~ s/#.*$//s;
   # Strip backslashes.
@@ -258,7 +251,7 @@ sub set_owner ($$$)
 {
   my ($self, $owner, $location) = @_;
   # We always adjust the location when the owner changes (even for
-  # `+=' statements).  The risk otherwise is to warn about
+  # '+=' statements).  The risk otherwise is to warn about
   # a VAR_MAKEFILE variable and locate it in configure.ac...
   $self->{'owner'} = $owner;
   $self->{'location'} = $location;
@@ -337,20 +330,3 @@ L<Automake::Variable>, L<Automake::ItemDef>.
 =cut
 
 1;
-
-### Setup "GNU" style for perl-mode and cperl-mode.
-## Local Variables:
-## perl-indent-level: 2
-## perl-continued-statement-offset: 2
-## perl-continued-brace-offset: 0
-## perl-brace-offset: 0
-## perl-brace-imaginary-offset: 0
-## perl-label-offset: -2
-## cperl-indent-level: 2
-## cperl-brace-offset: 0
-## cperl-continued-brace-offset: 0
-## cperl-label-offset: -2
-## cperl-extra-newline-before-brace: t
-## cperl-merge-trailing-else: nil
-## cperl-continued-statement-offset: 2
-## End:

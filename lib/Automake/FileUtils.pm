@@ -1,4 +1,4 @@
-# Copyright (C) 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
+# Copyright (C) 2003-2018 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -11,12 +11,10 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ###############################################################
-# The main copy of this file is in Automake's CVS repository. #
+# The main copy of this file is in Automake's git repository. #
 # Updates should be sent to automake-patches@gnu.org.         #
 ###############################################################
 
@@ -36,6 +34,7 @@ This perl module provides various general purpose file handling functions.
 
 =cut
 
+use 5.006;
 use strict;
 use Exporter;
 use File::stat;
@@ -49,8 +48,9 @@ use vars qw (@ISA @EXPORT);
 @EXPORT = qw (&contents
 	      &find_file &mtime
 	      &update_file &up_to_date_p
-	      &xsystem &xqx &dir_has_case_matching_file &reset_dir_cache);
-
+	      &xsystem &xsystem_hint &xqx
+	      &dir_has_case_matching_file &reset_dir_cache
+	      &set_dir_cache_file);
 
 =item C<find_file ($file_name, @include)>
 
@@ -67,7 +67,7 @@ if absent, otherwise exit with error.
 
 # $FILE_NAME
 # find_file ($FILE_NAME, @INCLUDE)
-# -------------------------------
+# --------------------------------
 sub find_file ($@)
 {
   use File::Spec;
@@ -98,7 +98,7 @@ sub find_file ($@)
 =item C<mtime ($file)>
 
 Return the mtime of C<$file>.  Missing files, or C<-> standing for
-C<STDIN> or C<STDOUT> are ``obsolete'', i.e., as old as possible.
+C<STDIN> or C<STDOUT> are "obsolete", i.e., as old as possible.
 
 =cut
 
@@ -141,7 +141,7 @@ sub update_file ($$;$)
 
   if ($to eq '-')
     {
-      my $in = new IO::File ("$from");
+      my $in = new IO::File $from, "<";
       my $out = new IO::File (">-");
       while ($_ = $in->getline)
 	{
@@ -155,7 +155,7 @@ sub update_file ($$;$)
   if (!$force && -f "$to" && compare ("$from", "$to") == 0)
     {
       # File didn't change, so don't update its mod time.
-      msg 'note', "`$to' is unchanged";
+      msg 'note', "'$to' is unchanged";
       unlink ($from)
         or fatal "cannot remove $from: $!";
       return
@@ -168,13 +168,13 @@ sub update_file ($$;$)
 	or fatal "cannot backup $to: $!";
       move ("$from", "$to")
 	or fatal "cannot rename $from as $to: $!";
-      msg 'note', "`$to' is updated";
+      msg 'note', "'$to' is updated";
     }
   else
     {
       move ("$from", "$to")
 	or fatal "cannot rename $from as $to: $!";
-      msg 'note', "`$to' is created";
+      msg 'note', "'$to' is created";
     }
 }
 
@@ -207,23 +207,32 @@ sub up_to_date_p ($@)
 }
 
 
-=item C<handle_exec_errors ($command, [$expected_exit_code = 0])>
+=item C<handle_exec_errors ($command, [$expected_exit_code = 0], [$hint])>
 
 Display an error message for C<$command>, based on the content of
 C<$?> and C<$!>.  Be quiet if the command exited normally
-with C<$expected_exit_code>.
+with C<$expected_exit_code>.  If C<$hint> is given, display that as well
+if the command failed to run at all.
 
 =cut
 
-sub handle_exec_errors ($;$)
+sub handle_exec_errors ($;$$)
 {
-  my ($command, $expected) = @_;
+  my ($command, $expected, $hint) = @_;
   $expected = 0 unless defined $expected;
+  if (defined $hint)
+    {
+      $hint = "\n" . $hint;
+    }
+  else
+    {
+      $hint = '';
+    }
 
   $command = (split (' ', $command))[0];
   if ($!)
     {
-      fatal "failed to run $command: $!";
+      fatal "failed to run $command: $!" . $hint;
     }
   else
     {
@@ -292,6 +301,25 @@ sub xsystem (@)
 }
 
 
+=item C<xsystem_hint ($msg, @argv)>
+
+Same as C<xsystem>, but allows to pass a hint that will be displayed
+in case the command failed to run at all.
+
+=cut
+
+sub xsystem_hint (@)
+{
+  my ($hint, @command) = @_;
+
+  verb "running: @command";
+
+  $! = 0;
+  handle_exec_errors "@command", 0, $hint
+    if system @command;
+}
+
+
 =item C<contents ($file_name)>
 
 Return the contents of C<$file_name>.
@@ -305,7 +333,7 @@ sub contents ($)
   my ($file) = @_;
   verb "reading $file";
   local $/;			# Turn on slurp-mode.
-  my $f = new Automake::XFile "< $file";
+  my $f = new Automake::XFile $file, "<";
   my $contents = $f->getline;
   $f->close;
   return $contents;
@@ -345,7 +373,7 @@ sub dir_has_case_matching_file ($$)
   # again and again.
   if (!exists $_directory_cache{$dirname})
     {
-      error "failed to open directory `$dirname'"
+      error "failed to open directory '$dirname'"
 	unless opendir (DIR, $dirname);
       $_directory_cache{$dirname} = { map { $_ => 1 } readdir (DIR) };
       closedir (DIR);
@@ -364,21 +392,17 @@ sub reset_dir_cache ($)
   delete $_directory_cache{$_[0]};
 }
 
-1; # for require
+=item C<set_dir_cache_file ($dirname, $file_name)>
 
-### Setup "GNU" style for perl-mode and cperl-mode.
-## Local Variables:
-## perl-indent-level: 2
-## perl-continued-statement-offset: 2
-## perl-continued-brace-offset: 0
-## perl-brace-offset: 0
-## perl-brace-imaginary-offset: 0
-## perl-label-offset: -2
-## cperl-indent-level: 2
-## cperl-brace-offset: 0
-## cperl-continued-brace-offset: 0
-## cperl-label-offset: -2
-## cperl-extra-newline-before-brace: t
-## cperl-merge-trailing-else: nil
-## cperl-continued-statement-offset: 2
-## End:
+State that C<$dirname> contains C<$file_name> now.
+
+=cut
+
+sub set_dir_cache_file ($$)
+{
+  my ($dirname, $file_name) = @_;
+  $_directory_cache{$dirname}{$file_name} = 1
+    if exists $_directory_cache{$dirname};
+}
+
+1; # for require

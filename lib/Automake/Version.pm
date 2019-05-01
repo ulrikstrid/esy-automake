@@ -1,4 +1,4 @@
-# Copyright (C) 2001, 2002, 2003  Free Software Foundation, Inc.
+# Copyright (C) 2001-2018 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -11,11 +11,11 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package Automake::Version;
+
+use 5.006;
 use strict;
 use Automake::ChannelDefs;
 
@@ -41,7 +41,7 @@ C<MICRO> are digits, C<ALPHA> is a character, and C<FORK> any
 alphanumeric word.
 
 Usually, C<ALPHA> is used to label alpha releases or intermediate
-snapshots, C<FORK> is used for CVS branches or patched releases, and
+snapshots, C<FORK> is used for git branches or patched releases, and
 C<MICRO> is used for bug fixes releases on the C<MAJOR.MINOR> branch.
 
 For the purpose of ordering, C<1.4> is the same as C<1.4.0>, but
@@ -132,7 +132,7 @@ sub check ($$)
     if $#required == -1;
 
   # If we require 3.4n-foo then we require something
-  # >= 3.4n, with the `foo' fork identifier.
+  # >= 3.4n, with the 'foo' fork identifier.
   return 1
     if ($required[4] ne '' && $required[4] ne $version[4]);
 
@@ -140,20 +140,3 @@ sub check ($$)
 }
 
 1;
-
-### Setup "GNU" style for perl-mode and cperl-mode.
-## Local Variables:
-## perl-indent-level: 2
-## perl-continued-statement-offset: 2
-## perl-continued-brace-offset: 0
-## perl-brace-offset: 0
-## perl-brace-imaginary-offset: 0
-## perl-label-offset: -2
-## cperl-indent-level: 2
-## cperl-brace-offset: 0
-## cperl-continued-brace-offset: 0
-## cperl-label-offset: -2
-## cperl-extra-newline-before-brace: t
-## cperl-merge-trailing-else: nil
-## cperl-continued-statement-offset: 2
-## End:

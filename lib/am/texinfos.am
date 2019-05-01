@@ -1,7 +1,6 @@
 ## automake - create Makefile.in from Makefile.am
 
-## Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-## 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+## Copyright (C) 1994-2018 Free Software Foundation, Inc.
 
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -14,35 +13,14 @@
 ## GNU General Public License for more details.
 
 ## You should have received a copy of the GNU General Public License
-## along with this program; if not, write to the Free Software
-## Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-## 02110-1301, USA.
+## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ## ----------- ##
 ## Variables.  ##
 ## ----------- ##
 
 if %?LOCAL-TEXIS%
-if ! %?CYGNUS%
 TEXI2DVI = texi2dvi
-
-else %?CYGNUS%
-
-## Find these programs wherever they may lie.  Yes, this has
-## intimate knowledge of the structure of the texinfo distribution.
-MAKEINFO = `if test -f $(top_builddir)/../texinfo/makeinfo/makeinfo; then \
-            echo $(top_builddir)/../texinfo/makeinfo/makeinfo; \
-          else \
-            echo makeinfo; \
-          fi`
-
-TEXI2DVI = `if test -f $(top_srcdir)/../texinfo/util/texi2dvi; then \
-             echo $(top_srcdir)/../texinfo/util/texi2dvi; \
-           else \
-             echo texi2dvi; \
-           fi`
-endif %?CYGNUS%
-
 TEXI2PDF = $(TEXI2DVI) --pdf --batch
 MAKEINFOHTML = $(MAKEINFO) --html
 AM_MAKEINFOHTMLFLAGS = $(AM_MAKEINFOFLAGS)
@@ -57,8 +35,8 @@ endif %?LOCAL-TEXIS%
 if %?LOCAL-TEXIS%
 DVIPS = dvips
 .dvi.ps:
-	TEXINPUTS="$(am__TEXINFO_TEX_DIR)$(PATH_SEPARATOR)$$TEXINPUTS" \
-	$(DVIPS) -o $@ $<
+	%AM_V_DVIPS%TEXINPUTS="$(am__TEXINFO_TEX_DIR)$(PATH_SEPARATOR)$$TEXINPUTS" \
+	$(DVIPS) %TEXIQUIET% -o $@ $<
 endif %?LOCAL-TEXIS%
 
 .PHONY: dvi dvi-am html html-am info info-am pdf pdf-am ps ps-am
@@ -97,12 +75,22 @@ endif ! %?LOCAL-TEXIS%
 ## Installing.  ##
 ## ------------ ##
 
+## Some code should be run only if install-info actually exists, and
+## if the user doesn't request it not to be run (through the
+## 'AM_UPDATE_INFO_DIR' environment variable).  See automake bug#9773
+## and Debian Bug#543992.
+am__can_run_installinfo = \
+  case $$AM_UPDATE_INFO_DIR in \
+    n|no|NO) false;; \
+    *) (install-info --version) >/dev/null 2>&1;; \
+  esac
+
 ## Look in both . and srcdir because the info pages might have been
 ## rebuilt in the build directory.  Can't cd to srcdir; that might
 ## break a possible install-sh reference.
 ##
 ## Funny name due to --cygnus influence; we want to reserve
-## `install-info' for the user.
+## 'install-info' for the user.
 ##
 ## TEXINFOS primary are always installed in infodir, hence install-data
 ## is hard coded.
@@ -145,36 +133,59 @@ include inst-vars.am
 
 install-dvi-am: $(DVIS)
 	@$(NORMAL_INSTALL)
-	test -z "$(dvidir)" || $(MKDIR_P) "$(DESTDIR)$(dvidir)"
-	@list='$(DVIS)'; for p in $$list; do \
+	@list='$(DVIS)'; test -n "$(dvidir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(dvidir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(dvidir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  echo " $(INSTALL_DATA) '$$d$$p' '$(DESTDIR)$(dvidir)/$$f'"; \
-	  $(INSTALL_DATA) "$$d$$p" "$(DESTDIR)$(dvidir)/$$f"; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(dvidir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(dvidir)" || exit $$?; \
 	done
 
 install-html-am: $(HTMLS)
 	@$(NORMAL_INSTALL)
-	test -z "$(htmldir)" || $(MKDIR_P) "$(DESTDIR)$(htmldir)"
-	@list='$(HTMLS)'; for p in $$list; do \
+	@list='$(HTMLS)'; list2=; test -n "$(htmldir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(htmldir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(htmldir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
 	  if test -f "$$p" || test -d "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  if test -d "$$d$$p"; then \
+	  $(am__strip_dir) \
+## This indirection is required to work around a bug of the Solaris 10
+## shell /usr/xpg4/bin/sh.  The description of the bug can be found at
+## <https://lists.gnu.org/archive/html/bug-autoconf/2011-11/msg00005.html>
+## and the report of the original failure can be found at automake
+## bug#10026 <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=10026#23>
+	  d2=$$d$$p; \
+	  if test -d "$$d2"; then \
 	    echo " $(MKDIR_P) '$(DESTDIR)$(htmldir)/$$f'"; \
 	    $(MKDIR_P) "$(DESTDIR)$(htmldir)/$$f" || exit 1; \
-	    echo " $(INSTALL_DATA) '$$d$$p'/* '$(DESTDIR)$(htmldir)/$$f'"; \
-	    $(INSTALL_DATA) "$$d$$p"/* "$(DESTDIR)$(htmldir)/$$f"; \
+	    echo " $(INSTALL_DATA) '$$d2'/* '$(DESTDIR)$(htmldir)/$$f'"; \
+	    $(INSTALL_DATA) "$$d2"/* "$(DESTDIR)$(htmldir)/$$f" || exit $$?; \
 	  else \
-	    echo " $(INSTALL_DATA) '$$d$$p' '$(DESTDIR)$(htmldir)/$$f'"; \
-	    $(INSTALL_DATA) "$$d$$p" "$(DESTDIR)$(htmldir)/$$f"; \
+	    list2="$$list2 $$d2"; \
 	  fi; \
-	done
+	done; \
+	test -z "$$list2" || { echo "$$list2" | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(htmldir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(htmldir)" || exit $$?; \
+	done; }
 
 install-info-am: $(INFO_DEPS)
 	@$(NORMAL_INSTALL)
-	test -z "$(infodir)" || $(MKDIR_P) "$(DESTDIR)$(infodir)"
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
-	list='$(INFO_DEPS)'; \
+	list='$(INFO_DEPS)'; test -n "$(infodir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(infodir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(infodir)" || exit 1; \
+	fi; \
 	for file in $$list; do \
 ## Strip possible $(srcdir) prefix.
 	  case $$file in \
@@ -189,66 +200,65 @@ install-info-am: $(INFO_DEPS)
 ##
 ## If $file == foo.info, then $file_i == foo.i.  The reason we use two
 ## shell commands instead of one ('s|\.info$$|.i|') is so that a suffix-less
-## `foo' becomes `foo.i' too.
+## 'foo' becomes 'foo.i' too.
 	  file_i=`echo "$$file" | sed 's|\.info$$||;s|$$|.i|'`; \
 	  for ifile in $$d/$$file $$d/$$file-[0-9] $$d/$$file-[0-9][0-9] \
-                       $$d/$$file_i[0-9] $$d/$$file_i[0-9][0-9] ; do \
+	               $$d/$$file_i[0-9] $$d/$$file_i[0-9][0-9] ; do \
 	    if test -f $$ifile; then \
-## Strip directory
-	      relfile=`echo "$$ifile" | sed 's|^.*/||'`; \
-	      echo " $(INSTALL_DATA) '$$ifile' '$(DESTDIR)$(infodir)/$$relfile'"; \
-	      $(INSTALL_DATA) "$$ifile" "$(DESTDIR)$(infodir)/$$relfile"; \
+	      echo "$$ifile"; \
 	    else : ; fi; \
 	  done; \
-	done
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(infodir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(infodir)" || exit $$?; done
 	@$(POST_INSTALL)
-## Only run this code if install-info actually exists, and it is not
-## the Debian install-info.  FIXME: once Debian install-info goes
-## away, we can remove this hack.  Some versions of Debian install-info
-## print their version on stderr (e.g. 1.8.3), other do it in
-## on stdout (e.g. 1.10.15).
-##
-## Do not use
-##    install-info --version 2>&1 | sed 1q | grep -v -i debian
-## as if install-info does not exist, grep -v will be happy, and
-## therefore the code will be triggered although install-info is missing.
-	@if (install-info --version && \
-	     install-info --version 2>&1 | sed 1q | grep -i -v debian) >/dev/null 2>&1; then \
-	  list='$(INFO_DEPS)'; \
+	@if $(am__can_run_installinfo); then \
+	  list='$(INFO_DEPS)'; test -n "$(infodir)" || list=; \
 	  for file in $$list; do \
 ## Strip directory
 	    relfile=`echo "$$file" | sed 's|^.*/||'`; \
-## Run `:' after install-info in case install-info fails.  We really
+## Run ":" after install-info in case install-info fails.  We really
 ## don't care about failures here, because they can be spurious.  For
 ## instance if you don't have a dir file, install-info will fail.  I
 ## think instead it should create a new dir file for you.  This bug
-## causes the `make distcheck' target to fail reliably.
+## causes the "make distcheck" target to fail reliably.
 	    echo " install-info --info-dir='$(DESTDIR)$(infodir)' '$(DESTDIR)$(infodir)/$$relfile'";\
-## Use `|| :' here because Sun make passes -e to sh; if install-info
-## fails then we'd fail if we used `;'.
+## Use "|| :" here because Sun make passes -e to sh; if install-info
+## fails then we'd fail if we used ";".
 	    install-info --info-dir="$(DESTDIR)$(infodir)" "$(DESTDIR)$(infodir)/$$relfile" || :;\
 	  done; \
 	else : ; fi
 
 install-pdf-am: $(PDFS)
 	@$(NORMAL_INSTALL)
-	test -z "$(pdfdir)" || $(MKDIR_P) "$(DESTDIR)$(pdfdir)"
-	@list='$(PDFS)'; for p in $$list; do \
+	@list='$(PDFS)'; test -n "$(pdfdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(pdfdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(pdfdir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  echo " $(INSTALL_DATA) '$$d$$p' '$(DESTDIR)$(pdfdir)/$$f'"; \
-	  $(INSTALL_DATA) "$$d$$p" "$(DESTDIR)$(pdfdir)/$$f"; \
-	done
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(pdfdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(pdfdir)" || exit $$?; done
 
 install-ps-am: $(PSS)
 	@$(NORMAL_INSTALL)
-	test -z "$(psdir)" || $(MKDIR_P) "$(DESTDIR)$(psdir)"
-	@list='$(PSS)'; for p in $$list; do \
+	@list='$(PSS)'; test -n "$(psdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(psdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(psdir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f=$(am__strip_dir) \
-	  echo " $(INSTALL_DATA) '$$d$$p' '$(DESTDIR)$(psdir)/$$f'"; \
-	  $(INSTALL_DATA) "$$d$$p" "$(DESTDIR)$(psdir)/$$f"; \
-	done
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(psdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(psdir)" || exit $$?; done
 
 else ! %?LOCAL-TEXIS%
 install-dvi-am:
@@ -273,16 +283,18 @@ if %?LOCAL-TEXIS%
 
 uninstall-dvi-am:
 	@$(NORMAL_UNINSTALL)
-	@list='$(DVIS)'; for p in $$list; do \
-	  f=$(am__strip_dir) \
+	@list='$(DVIS)'; test -n "$(dvidir)" || list=; \
+	for p in $$list; do \
+	  $(am__strip_dir) \
 	  echo " rm -f '$(DESTDIR)$(dvidir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(dvidir)/$$f"; \
 	done
 
 uninstall-html-am:
 	@$(NORMAL_UNINSTALL)
-	@list='$(HTMLS)'; for p in $$list; do \
-	  f=$(am__strip_dir) \
+	@list='$(HTMLS)'; test -n "$(htmldir)" || list=; \
+	for p in $$list; do \
+	  $(am__strip_dir) \
 ## $f can be a directory, hence the -r.
 	  echo " rm -rf '$(DESTDIR)$(htmldir)/$$f'"; \
 	  rm -rf "$(DESTDIR)$(htmldir)/$$f"; \
@@ -292,16 +304,17 @@ uninstall-info-am:
 	@$(PRE_UNINSTALL)
 ## Run two loops here so that we can handle PRE_UNINSTALL and
 ## NORMAL_UNINSTALL correctly.
-	@if test -d '$(DESTDIR)$(infodir)' && \
-	    (install-info --version && \
-	     install-info --version 2>&1 | sed 1q | grep -i -v debian) >/dev/null 2>&1; then \
+	@if test -d '$(DESTDIR)$(infodir)' && $(am__can_run_installinfo); then \
 	  list='$(INFO_DEPS)'; \
 	  for file in $$list; do \
 	    relfile=`echo "$$file" | sed 's|^.*/||'`; \
 ## install-info needs the actual info file.  We use the installed one,
 ## rather than relying on one still being in srcdir or builddir.
+## However, "make uninstall && make uninstall" should not fail,
+## so we ignore failure if the file did not exist.
 	    echo " install-info --info-dir='$(DESTDIR)$(infodir)' --remove '$(DESTDIR)$(infodir)/$$relfile'"; \
-	    install-info --info-dir="$(DESTDIR)$(infodir)" --remove "$(DESTDIR)$(infodir)/$$relfile"; \
+	    if install-info --info-dir="$(DESTDIR)$(infodir)" --remove "$(DESTDIR)$(infodir)/$$relfile"; \
+	    then :; else test ! -f "$(DESTDIR)$(infodir)/$$relfile" || exit 1; fi; \
 	  done; \
 	else :; fi
 	@$(NORMAL_UNINSTALL)
@@ -318,16 +331,18 @@ uninstall-info-am:
 
 uninstall-pdf-am:
 	@$(NORMAL_UNINSTALL)
-	@list='$(PDFS)'; for p in $$list; do \
-	  f=$(am__strip_dir) \
+	@list='$(PDFS)'; test -n "$(pdfdir)" || list=; \
+	for p in $$list; do \
+	  $(am__strip_dir) \
 	  echo " rm -f '$(DESTDIR)$(pdfdir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(pdfdir)/$$f"; \
 	done
 
 uninstall-ps-am:
 	@$(NORMAL_UNINSTALL)
-	@list='$(PSS)'; for p in $$list; do \
-	  f=$(am__strip_dir) \
+	@list='$(PSS)'; test -n "$(psdir)" || list=; \
+	for p in $$list; do \
+	  $(am__strip_dir) \
 	  echo " rm -f '$(DESTDIR)$(psdir)/$$f'"; \
 	  rm -f "$(DESTDIR)$(psdir)/$$f"; \
 	done
@@ -349,8 +364,8 @@ dist-info: $(INFO_DEPS)
 	    if test -f $$file; then \
 ## Strip leading '$$d/'.
 	      relfile=`expr "$$file" : "$$d/\(.*\)"`; \
-	      test -f $(distdir)/$$relfile || \
-		cp -p $$file $(distdir)/$$relfile; \
+	      test -f "$(distdir)/$$relfile" || \
+		cp -p $$file "$(distdir)/$$relfile"; \
 	    else :; fi; \
 	  done; \
 	done
@@ -362,15 +377,23 @@ endif %?LOCAL-TEXIS%
 ## ---------- ##
 
 ## The funny name is due to --cygnus influence; in Cygnus mode,
-## `clean-info' is a target that users can use.
+## 'clean-info' is a target that users can use.
 
 if %?LOCAL-TEXIS%
 .PHONY mostlyclean-am: mostlyclean-aminfo
 .PHONY: mostlyclean-aminfo
 mostlyclean-aminfo:
-## Use `-rf', not just `-f', because %TEXICLEAN% also contains
-## any directory created by `makeinfo --html'.
-	-rm -rf %TEXICLEAN%
+## Use '-rf', not just '-f', because the %*CLEAN% substitutions can also
+## contain any directory created by "makeinfo --html", as well as the
+## '*.t2d' and '*.t2p' directories used by texi2dvi and texi2pdf.
+	-rm -rf %MOSTLYCLEAN%
+
+.PHONY clean-am: clean-aminfo
+clean-aminfo:
+## Use '-rf', not just '-f'; see comments in 'mostlyclean-aminfo'
+## above for details.
+?TEXICLEAN?	-test -z "%TEXICLEAN%" \
+?TEXICLEAN?	|| rm -rf %TEXICLEAN%
 
 .PHONY maintainer-clean-am: maintainer-clean-aminfo
 maintainer-clean-aminfo:
@@ -380,7 +403,9 @@ maintainer-clean-aminfo:
 	  echo " rm -f $$i $$i-[0-9] $$i-[0-9][0-9] $$i_i[0-9] $$i_i[0-9][0-9]"; \
 	  rm -f $$i $$i-[0-9] $$i-[0-9][0-9] $$i_i[0-9] $$i_i[0-9][0-9]; \
 	done
+## Use '-rf', not just '-f'; see comments in 'mostlyclean-aminfo'
+## above for details.
+?MAINTCLEAN?	-test -z "%MAINTCLEAN%" \
+?MAINTCLEAN?	|| rm -rf %MAINTCLEAN%
 
-?CYGNUS?.PHONY: clean-info
-?CYGNUS?clean-info: mostlyclean-aminfo
 endif %?LOCAL-TEXIS%

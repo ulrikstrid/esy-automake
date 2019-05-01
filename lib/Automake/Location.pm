@@ -1,4 +1,4 @@
-# Copyright (C) 2002, 2003  Free Software Foundation, Inc.
+# Copyright (C) 2002-2018 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -11,11 +11,11 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package Automake::Location;
+
+use 5.006;
 
 =head1 NAME
 
@@ -52,12 +52,19 @@ Automake::Location - a class for location tracking, with a stack of contexts
       ...
     }
 
-  # Pop a context, and reset the location from the previous context.
+  # Pop a context, and reset the location to the previous context.
   $where->pop_context;
 
   # Clone a Location.  Use this when storing the state of a location
   # that would otherwise be modified.
   my $where_copy = $where->clone;
+
+  # Serialize a Location object (for passing through a thread queue,
+  # for example)
+  my @array = $where->serialize ();
+
+  # De-serialize: recreate a Location object from a queue.
+  my $where = new Automake::Location::deserialize ($queue);
 
 =head1 DESCRIPTION
 
@@ -79,6 +86,16 @@ You can pass a C<Location> to C<Automake::Channels::msg>.
 
 =cut
 
+=head2 Methods
+
+=over
+
+=item C<$where = new Automake::Location ([$position])>
+
+Create and return a new Location object.
+
+=cut
+
 sub new ($;$)
 {
   my ($class, $position) = @_;
@@ -90,11 +107,23 @@ sub new ($;$)
   return $self;
 }
 
+=item C<$location-E<gt>set ($position)>
+
+Change the location to be C<$position>.
+
+=cut
+
 sub set ($$)
 {
   my ($self, $position) = @_;
   $self->{'position'} = $position;
 }
+
+=item C<$location-E<gt>get>
+
+Get the location (without context).
+
+=cut
 
 sub get ($)
 {
@@ -102,12 +131,24 @@ sub get ($)
   return $self->{'position'};
 }
 
+=item C<$location-E<gt>push_context ($context)>
+
+Push a context to the location.
+
+=cut
+
 sub push_context ($$)
 {
   my ($self, $context) = @_;
   push @{$self->{'contexts'}}, [$self->get, $context];
   $self->set (undef);
 }
+
+=item C<$where = $location-E<gt>pop_context ($context)>
+
+Pop a context, and reset the location to the previous context.
+
+=cut
 
 sub pop_context ($)
 {
@@ -117,11 +158,24 @@ sub pop_context ($)
   return @{$pair};
 }
 
+=item C<@contexts = $location-E<gt>get_contexts>
+
+Return the array of contexts.
+
+=cut
+
 sub get_contexts ($)
 {
   my ($self) = @_;
   return @{$self->{'contexts'}};
 }
+
+=item C<$location = $location-E<gt>clone>
+
+Clone a Location.  Use this when storing the state of a location
+that would otherwise be modified.
+
+=cut
 
 sub clone ($)
 {
@@ -135,6 +189,12 @@ sub clone ($)
   return $other;
 }
 
+=item C<$res = $location-E<gt>dump>
+
+Print the location and the stack of context (for debugging).
+
+=cut
+
 sub dump ($)
 {
   my ($self) = @_;
@@ -147,6 +207,48 @@ sub dump ($)
   return $res;
 }
 
+=item C<@array = $location-E<gt>serialize>
+
+Serialize a Location object (for passing through a thread queue,
+for example).
+
+=cut
+
+sub serialize ($)
+{
+  my ($self) = @_;
+  my @serial = ();
+  push @serial, $self->get;
+  my @contexts = $self->get_contexts;
+  for my $pair (@contexts)
+    {
+      push @serial, @{$pair};
+    }
+  push @serial, undef;
+  return @serial;
+}
+
+=item C<new Automake::Location::deserialize ($queue)>
+
+De-serialize: recreate a Location object from a queue.
+
+=cut
+
+sub deserialize ($)
+{
+  my ($queue) = @_;
+  my $position = $queue->dequeue ();
+  my $self = new Automake::Location $position;
+  while (my $position = $queue->dequeue ())
+    {
+      my $context = $queue->dequeue ();
+      push @{$self->{'contexts'}}, [$position, $context];
+    }
+  return $self;
+}
+
+=back
+
 =head1 SEE ALSO
 
 L<Automake::Channels>
@@ -158,20 +260,3 @@ Written by Alexandre Duret-Lutz E<lt>F<adl@gnu.org>E<gt>.
 =cut
 
 1;
-
-### Setup "GNU" style for perl-mode and cperl-mode.
-## Local Variables:
-## perl-indent-level: 2
-## perl-continued-statement-offset: 2
-## perl-continued-brace-offset: 0
-## perl-brace-offset: 0
-## perl-brace-imaginary-offset: 0
-## perl-label-offset: -2
-## cperl-indent-level: 2
-## cperl-brace-offset: 0
-## cperl-continued-brace-offset: 0
-## cperl-label-offset: -2
-## cperl-extra-newline-before-brace: t
-## cperl-merge-trailing-else: nil
-## cperl-continued-statement-offset: 2
-## End:

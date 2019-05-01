@@ -1,5 +1,5 @@
 {
-  "checksum": "b7b5df34aa573a9fc83c8303c73f84ca",
+  "checksum": "0cc961f41dbf4ff5ab5654751a4ba36e",
   "root": "esy-automake@link-dev:./package.json",
   "node": {
     "esy-automake@link-dev:./package.json": {
@@ -10,24 +10,6 @@
         "type": "link-dev",
         "path": ".",
         "manifest": "package.json"
-      },
-      "overrides": [],
-      "dependencies": [
-        "esy-autoconf@archive:https://github.com/esy-packages/esy-autoconf/archive/v2.10.001.tar.gz#sha1:b8ee4dcd7a95db381cffc0f169a61dc3f90ab257@d41d8cd9"
-      ],
-      "devDependencies": []
-    },
-    "esy-autoconf@archive:https://github.com/esy-packages/esy-autoconf/archive/v2.10.001.tar.gz#sha1:b8ee4dcd7a95db381cffc0f169a61dc3f90ab257@d41d8cd9": {
-      "id":
-        "esy-autoconf@archive:https://github.com/esy-packages/esy-autoconf/archive/v2.10.001.tar.gz#sha1:b8ee4dcd7a95db381cffc0f169a61dc3f90ab257@d41d8cd9",
-      "name": "esy-autoconf",
-      "version":
-        "archive:https://github.com/esy-packages/esy-autoconf/archive/v2.10.001.tar.gz#sha1:b8ee4dcd7a95db381cffc0f169a61dc3f90ab257",
-      "source": {
-        "type": "install",
-        "source": [
-          "archive:https://github.com/esy-packages/esy-autoconf/archive/v2.10.001.tar.gz#sha1:b8ee4dcd7a95db381cffc0f169a61dc3f90ab257"
-        ]
       },
       "overrides": [],
       "dependencies": [],

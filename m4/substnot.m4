@@ -1,5 +1,5 @@
 ##                                                          -*- Autoconf -*-
-# Copyright (C) 2006  Free Software Foundation, Inc.
+# Copyright (C) 2006-2018 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -7,6 +7,11 @@
 
 # _AM_SUBST_NOTMAKE(VARIABLE)
 # ---------------------------
-# Prevent Automake from outputing VARIABLE = @VARIABLE@ in Makefile.in.
+# Prevent Automake from outputting VARIABLE = @VARIABLE@ in Makefile.in.
 # This macro is traced by Automake.
 AC_DEFUN([_AM_SUBST_NOTMAKE])
+
+# AM_SUBST_NOTMAKE(VARIABLE)
+# --------------------------
+# Public sister of _AM_SUBST_NOTMAKE.
+AC_DEFUN([AM_SUBST_NOTMAKE], [_AM_SUBST_NOTMAKE($@)])

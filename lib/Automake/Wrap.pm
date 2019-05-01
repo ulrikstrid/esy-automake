@@ -1,4 +1,4 @@
-# Copyright (C) 2003, 2006  Free Software Foundation, Inc.
+# Copyright (C) 2003-2018 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -11,12 +11,11 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package Automake::Wrap;
 
+use 5.006;
 use strict;
 
 require Exporter;
@@ -50,14 +49,14 @@ maximum length allowed.  (Ticket #17141, fixed in Perl 5.8.0.)
 
 =cut
 
-# tab_length ($TXT)
-# -----------------
+# _tab_length ($TXT)
+# ------------------
 # Compute the length of TXT, counting tab characters as 8 characters.
-sub tab_length($)
+sub _tab_length($)
 {
   my ($txt) = @_;
   my $len = length ($txt);
-  $len += 7 * ($txt =~ tr/\t/\t/d);
+  $len += 7 * ($txt =~ tr/\t/\t/);
   return $len;
 }
 
@@ -68,7 +67,7 @@ followed by the strings in C<@values> separated by spaces or by
 C<"$eol\n$fill"> so that the length of each line never exceeds
 C<$max_len>.
 
-The C<$max_len> contraint is ignored for C<@values> items which
+The C<$max_len> constraint is ignored for C<@values> items which
 are too big to fit alone one a line.
 
 The constructed paragraph is C<"\n">-terminated.
@@ -80,16 +79,16 @@ sub wrap($$$$@)
   my ($head, $fill, $eol, $max_len, @values) = @_;
 
   my $result = $head;
-  my $column = tab_length ($head);
+  my $column = _tab_length ($head);
 
-  my $fill_len = tab_length ($fill);
-  my $eol_len = tab_length ($eol);
+  my $fill_len = _tab_length ($fill);
+  my $eol_len = _tab_length ($eol);
 
   my $not_first_word = 0;
 
   foreach (@values)
     {
-      my $len = tab_length ($_);
+      my $len = _tab_length ($_);
 
       # See if the new variable fits on this line.
       # (The + 1 is for the space we add in front of the value.).
@@ -148,20 +147,3 @@ sub makefile_wrap ($$@)
 
 
 1;
-
-### Setup "GNU" style for perl-mode and cperl-mode.
-## Local Variables:
-## perl-indent-level: 2
-## perl-continued-statement-offset: 2
-## perl-continued-brace-offset: 0
-## perl-brace-offset: 0
-## perl-brace-imaginary-offset: 0
-## perl-label-offset: -2
-## cperl-indent-level: 2
-## cperl-brace-offset: 0
-## cperl-continued-brace-offset: 0
-## cperl-label-offset: -2
-## cperl-extra-newline-before-brace: t
-## cperl-merge-trailing-else: nil
-## cperl-continued-statement-offset: 2
-## End:

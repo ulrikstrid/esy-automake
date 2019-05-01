@@ -1,4 +1,4 @@
-# Copyright (C) 1997, 2001, 2002, 2003, 2004, 2006  Free Software Foundation, Inc.
+# Copyright (C) 1997-2018 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -11,14 +11,13 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package Automake::DisjConditions;
 
-use Carp;
+use 5.006;
 use strict;
+use Carp;
 use Automake::Condition qw/TRUE FALSE/;
 
 =head1 NAME
@@ -46,7 +45,7 @@ Automake::DisjConditions - record a disjunction of Conditions
   my $cond = $set->one_cond;
 
   # Return true iff $set is always true (i.e. its subconditions
-  # conver all cases).
+  # cover all cases).
   if ($set->true) { ... }
 
   # Return false iff $set is always false (i.e. is empty, or contains
@@ -112,7 +111,7 @@ follows.
 
   (COND1 and COND2) or ((not COND3) and COND4)
 
-That's indeed the condition into which C<VAR> has a value.
+That's indeed the condition in which C<VAR> has a value.
 
 Like C<Condition> objects, a C<DisjConditions> object is unique
 with respect to its conditions.  Two C<DisjConditions> objects created
@@ -138,7 +137,7 @@ ignored.
 =cut
 
 # Keys in this hash are DisjConditions strings. Values are the
-# associated object DisjConditions.  This is used by `new' to reuse
+# associated object DisjConditions.  This is used by 'new' to reuse
 # DisjConditions objects with identical conditions.
 use vars '%_disjcondition_singletons';
 
@@ -148,8 +147,8 @@ sub new ($;@)
   my @filtered_conds = ();
   for my $cond (@conds)
     {
-      confess "`$cond' isn't a reference" unless ref $cond;
-      confess "`$cond' isn't an Automake::Condition"
+      confess "'$cond' isn't a reference" unless ref $cond;
+      confess "'$cond' isn't an Automake::Condition"
 	unless $cond->isa ("Automake::Condition");
 
       # This is a disjunction of conditions, so we drop
@@ -178,7 +177,7 @@ sub new ($;@)
   # Else, create a new DisjConditions.
 
   # Store conditions as keys AND as values, because blessed
-  # objects are converted to string when used as keys (so
+  # objects are converted to strings when used as keys (so
   # at least we still have the value when we need to call
   # a method).
   my %h = map {$_ => $_} @filtered_conds;
@@ -193,6 +192,26 @@ sub new ($;@)
   $_disjcondition_singletons{$string} = $self;
   return $self;
 }
+
+
+=item C<CLONE>
+
+Internal special subroutine to fix up the self hashes in
+C<%_disjcondition_singletons> upon thread creation.  C<CLONE> is invoked
+automatically with ithreads from Perl 5.7.2 or later, so if you use this
+module with earlier versions of Perl, it is not thread-safe.
+
+=cut
+
+sub CLONE
+{
+  foreach my $self (values %_disjcondition_singletons)
+    {
+      my %h = map { $_ => $_ } @{$self->{'conds'}};
+      $self->{'hash'} = \%h;
+    }
+}
+
 
 =item C<@conds = $set-E<gt>conds>
 
@@ -331,7 +350,7 @@ The argument can also be a C<Condition>.
 
 =cut
 
-# Same as multiply() but take a list of Conditonals as second argument.
+# Same as multiply() but take a list of Conditionals as second argument.
 # We use this in invert().
 sub _multiply ($@)
 {
@@ -444,7 +463,7 @@ sub sub_conditions ($$)
   my ($self, $subcond) = @_;
 
   # Make $subcond blindingly apparent in the DisjConditions.
-  # For instance `$b->multiply($a->conds)' (from the POD example) is:
+  # For instance '$b->multiply($a->conds)' (from the POD example) is:
   # 	(new Automake::Condition ("FALSE"),
   # 	 new Automake::Condition ("A_TRUE", "B_FALSE", "C_FALSE"),
   # 	 new Automake::Condition ("A_TRUE", "B_FALSE", "C_TRUE"),
@@ -519,20 +538,3 @@ Alexandre Duret-Lutz <adl@gnu.org>.
 =cut
 
 1;
-
-### Setup "GNU" style for perl-mode and cperl-mode.
-## Local Variables:
-## perl-indent-level: 2
-## perl-continued-statement-offset: 2
-## perl-continued-brace-offset: 0
-## perl-brace-offset: 0
-## perl-brace-imaginary-offset: 0
-## perl-label-offset: -2
-## cperl-indent-level: 2
-## cperl-brace-offset: 0
-## cperl-continued-brace-offset: 0
-## cperl-label-offset: -2
-## cperl-extra-newline-before-brace: t
-## cperl-merge-trailing-else: nil
-## cperl-continued-statement-offset: 2
-## End:

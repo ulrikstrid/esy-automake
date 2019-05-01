@@ -1,4 +1,4 @@
-# Copyright (C) 2003  Free Software Foundation, Inc.
+# Copyright (C) 2003-2018 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -11,11 +11,11 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package Automake::RuleDef;
+
+use 5.006;
 use strict;
 use Carp;
 use Automake::ChannelDefs;
@@ -38,6 +38,7 @@ Automake::RuleDef - a class for rule definitions
 =head1 DESCRIPTION
 
 This class gathers data related to one Makefile-rule definition.
+It shouldn't be needed outside of F<Rule.pm>.
 
 =head2 Constants
 
@@ -52,6 +53,20 @@ Possible owners for rules.
 use constant RULE_AUTOMAKE => 0; # Rule defined by Automake.
 use constant RULE_USER => 1;     # Rule defined in the user's Makefile.am.
 
+=back
+
+=head2 Methods
+
+=over 4
+
+=item C<new Automake::RuleDef ($name, $comment, $location, $owner, $source)>
+
+Create a new rule definition with target C<$name>, with associated comment
+C<$comment>, Location C<$location> and owner C<$owner>, defined in file
+C<$source>.
+
+=cut
+
 sub new ($$$$$)
 {
   my ($class, $name, $comment, $location, $owner, $source) = @_;
@@ -62,11 +77,23 @@ sub new ($$$$$)
   return $self;
 }
 
+=item C<$source = $rule-E<gt>source>
+
+Return the source of the rule.
+
+=cut
+
 sub source ($)
 {
   my ($self) = @_;
   return $self->{'source'};
 }
+
+=item C<$name = $rule-E<gt>name>
+
+Return the name of the rule.
+
+=cut
 
 sub name ($)
 {
@@ -83,20 +110,3 @@ L<Automake::Rule>, L<Automake::ItemDef>.
 =cut
 
 1;
-
-### Setup "GNU" style for perl-mode and cperl-mode.
-## Local Variables:
-## perl-indent-level: 2
-## perl-continued-statement-offset: 2
-## perl-continued-brace-offset: 0
-## perl-brace-offset: 0
-## perl-brace-imaginary-offset: 0
-## perl-label-offset: -2
-## cperl-indent-level: 2
-## cperl-brace-offset: 0
-## cperl-continued-brace-offset: 0
-## cperl-label-offset: -2
-## cperl-extra-newline-before-brace: t
-## cperl-merge-trailing-else: nil
-## cperl-continued-statement-offset: 2
-## End:

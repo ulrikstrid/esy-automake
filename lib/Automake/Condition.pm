@@ -1,4 +1,4 @@
-# Copyright (C) 1997, 2001, 2002, 2003, 2006  Free Software Foundation, Inc.
+# Copyright (C) 1997-2018 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -11,11 +11,11 @@
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-# 02110-1301, USA.
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package Automake::Condition;
+
+use 5.006;
 use strict;
 use Carp;
 
@@ -144,13 +144,13 @@ An item in C<@conds> should be either C<"FALSE">, C<"TRUE">, or have
 the form C<"NAME_FALSE"> or C<"NAME_TRUE"> where C<NAME> can be
 anything (in practice C<NAME> should be the name of a conditional
 declared in F<configure.ac> with C<AM_CONDITIONAL>, but it's not
-C<Automake::Condition>'s responsability to ensure this).
+C<Automake::Condition>'s responsibility to ensure this).
 
 An empty C<@conds> means C<"TRUE">.
 
 As explained previously, the reference (object) returned is unique
 with respect to C<@conds>.  For this purpose, duplicate elements are
-ignored, and C<@conds> is rewriten as C<("FALSE")> if it contains
+ignored, and C<@conds> is rewritten as C<("FALSE")> if it contains
 C<"FALSE"> or two contradictory conditionals (such as C<"NAME_FALSE">
 and C<"NAME_TRUE">.)
 
@@ -165,11 +165,11 @@ both create the C<"FALSE"> condition).
 =cut
 
 # Keys in this hash are conditional strings. Values are the
-# associated object conditions.  This is used by `new' to reuse
+# associated object conditions.  This is used by 'new' to reuse
 # Condition objects with identical conditionals.
 use vars '%_condition_singletons';
 # Do NOT reset this hash here.  It's already empty by default,
-# and any setting would otherwise occur AFTER the `TRUE' and `FALSE'
+# and any setting would otherwise occur AFTER the 'TRUE' and 'FALSE'
 # constants definitions.
 #   %_condition_singletons = ();
 
@@ -181,18 +181,21 @@ sub new ($;@)
   };
   bless $self, $class;
 
+  for my $cond (@conds)
+    {
+      # Catch some common programming errors:
+      # - A Condition passed to new
+      confess "'$cond' is a reference, expected a string" if ref $cond;
+      # - A Condition passed as a string to new
+      confess "'$cond' does not look like a condition" if $cond =~ /::/;
+    }
+
   # Accept strings like "FOO BAR" as shorthand for ("FOO", "BAR").
   @conds = map { split (' ', $_) } @conds;
 
   for my $cond (@conds)
     {
       next if $cond eq 'TRUE';
-
-      # Catch some common programming errors:
-      # - A Condition passed to new
-      confess "`$cond' is a reference, expected a string" if ref $cond;
-      # - A Condition passed as a string to new
-      confess "`$cond' does not look like a condition" if $cond =~ /::/;
 
       # Detect cases when @conds can be simplified to FALSE.
       if (($cond eq 'FALSE' && $#conds > 0)
@@ -251,7 +254,7 @@ except those of C<$minuscond>.  This is the opposite of C<merge>.
 sub strip ($$)
 {
   my ($self, $minus) = @_;
-  my @res = grep { not $minus->has ($_) } $self->conds;
+  my @res = grep { not $minus->_has ($_) } $self->conds;
   return new Automake::Condition @res;
 }
 
@@ -274,8 +277,8 @@ sub conds ($ )
   return sort @conds;
 }
 
-# Undocumented, shouldn't be needed out of this class.
-sub has ($$)
+# Undocumented, shouldn't be needed outside of this class.
+sub _has ($$)
 {
   my ($self, $cond) = @_;
   return exists $self->{'hash'}{$cond};
@@ -290,7 +293,7 @@ Return 1 iff this condition is always false.
 sub false ($ )
 {
   my ($self) = @_;
-  return $self->has ('FALSE');
+  return $self->_has ('FALSE');
 }
 
 =item C<$cond-E<gt>true>
@@ -427,7 +430,7 @@ sub true_when ($$)
   # exists in $WHEN.
   foreach my $cond ($self->conds)
     {
-      return 0 unless $when->has ($cond);
+      return 0 unless $when->_has ($cond);
     }
   return 1;
 }
@@ -518,6 +521,8 @@ sub multiply ($@)
 
   return (values %res);
 }
+
+=back
 
 =head2 Other helper functions
 
@@ -616,6 +621,8 @@ sub conditional_negate ($)
   return $cond;
 }
 
+=back
+
 =head1 SEE ALSO
 
 L<Automake::DisjConditions>.
@@ -631,20 +638,3 @@ Akim Demaille <akim@epita.fr>, and  Alexandre Duret-Lutz <adl@gnu.org>.
 =cut
 
 1;
-
-### Setup "GNU" style for perl-mode and cperl-mode.
-## Local Variables:
-## perl-indent-level: 2
-## perl-continued-statement-offset: 2
-## perl-continued-brace-offset: 0
-## perl-brace-offset: 0
-## perl-brace-imaginary-offset: 0
-## perl-label-offset: -2
-## cperl-indent-level: 2
-## cperl-brace-offset: 0
-## cperl-continued-brace-offset: 0
-## cperl-label-offset: -2
-## cperl-extra-newline-before-brace: t
-## cperl-merge-trailing-else: nil
-## cperl-continued-statement-offset: 2
-## End:
