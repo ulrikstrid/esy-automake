@@ -1,7 +1,23 @@
 {
-  "checksum": "0cc961f41dbf4ff5ab5654751a4ba36e",
+  "checksum": "7371847a237e36381c8709a057c97ccf",
   "root": "esy-automake@link-dev:./package.json",
   "node": {
+    "esy-help2man@github:esy-packages/esy-help2man#c8e6931d1dcf58a81bd801145a777fd3b115c443@d41d8cd9": {
+      "id":
+        "esy-help2man@github:esy-packages/esy-help2man#c8e6931d1dcf58a81bd801145a777fd3b115c443@d41d8cd9",
+      "name": "esy-help2man",
+      "version":
+        "github:esy-packages/esy-help2man#c8e6931d1dcf58a81bd801145a777fd3b115c443",
+      "source": {
+        "type": "install",
+        "source": [
+          "github:esy-packages/esy-help2man#c8e6931d1dcf58a81bd801145a777fd3b115c443"
+        ]
+      },
+      "overrides": [],
+      "dependencies": [],
+      "devDependencies": []
+    },
     "esy-automake@link-dev:./package.json": {
       "id": "esy-automake@link-dev:./package.json",
       "name": "esy-automake",
@@ -12,7 +28,27 @@
         "manifest": "package.json"
       },
       "overrides": [],
-      "dependencies": [],
+      "dependencies": [
+        "autoconf@github:esy-packages/esy-autoconf#94f846f3ad69fc65c65a61dd7fd3d70073dc93ea@d41d8cd9"
+      ],
+      "devDependencies": []
+    },
+    "autoconf@github:esy-packages/esy-autoconf#94f846f3ad69fc65c65a61dd7fd3d70073dc93ea@d41d8cd9": {
+      "id":
+        "autoconf@github:esy-packages/esy-autoconf#94f846f3ad69fc65c65a61dd7fd3d70073dc93ea@d41d8cd9",
+      "name": "autoconf",
+      "version":
+        "github:esy-packages/esy-autoconf#94f846f3ad69fc65c65a61dd7fd3d70073dc93ea",
+      "source": {
+        "type": "install",
+        "source": [
+          "github:esy-packages/esy-autoconf#94f846f3ad69fc65c65a61dd7fd3d70073dc93ea"
+        ]
+      },
+      "overrides": [],
+      "dependencies": [
+        "esy-help2man@github:esy-packages/esy-help2man#c8e6931d1dcf58a81bd801145a777fd3b115c443@d41d8cd9"
+      ],
       "devDependencies": []
     }
   }

@@ -5,6 +5,7 @@
   "esy": {
     "buildsInSource": true,
     "build": [
+      "find ./ -exec touch -t 200905010101 {} + ",
       ["chmod", "755", "./configure"],
       ["bash", "-c", "#{os == 'windows' ? './configure --prefix=$cur__install --host x86_64-w64-mingw32' : './configure --prefix=$cur__install'}"],
       ["make"],
