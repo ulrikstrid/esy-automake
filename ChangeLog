@@ -1,3 +1,111 @@
+2018-03-11  Mathieu Lirzin  <mthl@gnu.org>
+
+	version 1.16.1
+
+	* configure.ac (AC_INIT): Bump version number to 1.16.1.
+	* m4/amversion.m4: Likewise (auto-updated by "make bootstrap").
+	* NEWS: Record release version.
+
+2018-03-11  Mathieu Lirzin  <mthl@gnu.org>
+
+	maint: Update files from upstream with 'make fetch'
+
+	* lib/config.guess: Update.
+	* lib/config.sub: Likewise.
+	* lib/gendocs.sh: Likewise.
+	* lib/gitlog-to-changelog: Likewise.
+	* lib/gnupload: Likewise.
+	* lib/texinfo.tex: Likewise.
+	* lib/update-copyright: Likewise.
+
+2018-03-11  Pavel Raiskup  <praiskup@redhat.com>
+
+	install-sh: avoid (low risk) race in "/tmp"
+
+	Ensure that nobody can cross privilege boundaries by pre-creating
+	symlink on '$tmpdir' destination directory.
+
+	Just testing 'mkdir -p' by creating "/tmp/ins$RANDOM-$$/d" is not safe
+	because "/tmp" directory is usually world-writeable and
+	"/tmp/ins$RANDOM-$$" content could be pretty easily guessed by
+	attacker (at least for shells where $RANDOM is not supported).  So, as
+	the first step, create the "/tmp/ins$RANDOM-$$" without -p.  This step
+	would fail early if somebody wanted catch us.
+
+	Systems that implement (and have enabled) fs.protected_symlinks kernel
+	feature are not affected even without this commit.
+
+	References:
+	https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=760455
+	https://bugzilla.redhat.com/show_bug.cgi?id=1140725
+
+	* lib/install-sh: Implement safer 'mkdir -p' test by running
+	'$mkdirprog $mkdir_mode "$tmpdir"' first.
+	* NEWS: Update.
+
+2018-03-08  Mathieu Lirzin  <mthl@gnu.org>
+
+	automake: Don't rely on List::Util to provide 'none'
+
+	This change fixes automake bug#30631.
+
+	This removes the use of List::Util which is not supported by Perl 5.6,
+	by reimplementing the 'none' subroutine.
+
+	* lib/Automake/General.pm (none): New subroutine.
+	* bin/automake.in (handle_single_transform): Use it.
+	* t/pm/General.pl: New test.
+	* t/list-of-tests.mk (perl_TESTS): Add it.
+	* NEWS: Update.
+
+2018-03-08  Mathieu Lirzin  <mthl@gnu.org>
+
+	python: Support future python version up to 3.9
+
+	This change fixes automake bug#28160.
+
+	Since AM_PYTHON_PATH macro takes no maximum version argument, there is
+	no need to generate _AM_PYTHON_INTERPRETER_LIST dynamically, like what
+	was previously done by the reverted commit
+	1d60fb72168e62d33fe433380af621de64e22f23.  We could rely on M4 to
+	generate this list statically however this is likely to be a complex
+	solution that would not improve maintainability.
+
+	* m4/python.m4 (_AM_PYTHON_INTERPRETER_LIST): Add 'python3.7',
+	'python3.8', and 'python3.9'.
+	* NEWS: Update.
+
+2018-03-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	maint: write-file-hooks -> before-save-hook
+
+	write-file-hooks is obsolete since Emacs 22.1 (released June 2007) and
+	it's time to use the recommended replacement.
+	Problem reported by Glenn Morris in:
+	https://lists.gnu.org/r/bug-gnulib/2018-03/msg00008.html
+	* contrib/tap-driver.pl, lib/compile, lib/depcomp, lib/install-sh:
+	* lib/mdate-sh, lib/missing, lib/mkinstalldirs, lib/py-compile:
+	* lib/tap-driver.sh, lib/test-driver, lib/ylwrap:
+	Update hook usage for files where Automake is the canonical source.
+
+2018-03-03  Mathieu Lirzin  <mthl@gnu.org>
+
+	Revert "python: Generate python interpreter list"
+
+	This reverts commit 1d60fb72168e62d33fe433380af621de64e22f23.
+
+2018-02-25  Mathieu Lirzin  <mthl@gnu.org>
+
+	maint: Post-release administrivia
+
+	* NEWS: Add header line for next release.
+	* configure.ac (AC_INIT): Bump version number to 1.16a.
+	* m4/amversion.m4: Likewise (auto-updated by "make bootstrap").
+
+2018-02-25  Mathieu Lirzin  <mthl@gnu.org>
+
+	Merge branch 'release'
+
 2018-02-25  Mathieu Lirzin  <mthl@gnu.org>
 
 	version 1.16
