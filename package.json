@@ -12,7 +12,7 @@
     ]
   },
   "dependencies": {
-    "autoconf": "esy-packages/esy-autoconf#94f846f3ad69fc65c65a61dd7fd3d70073dc93ea"
+    "autoconf": "esy-packages/esy-autoconf#ea58671a08c7ebf89b0cebd41f4950ca67157b01"
   },
   "resolutions": {}
 }
